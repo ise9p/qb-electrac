@@ -60,29 +60,60 @@ RegisterNetEvent("qb-electrac:client:menu", function()
     local PlayerData = QBCore.Functions.GetPlayerData()
     local jobRep = PlayerData.metadata["jobrep"] and PlayerData.metadata["jobrep"]["electrac"] or { grade = 1, progress = 0, payment = 0 }
 
-    local jobMenu = {
-        { header = "Job Menu", icon = "fas fa-briefcase", isMenuHeader = true },
-        { header = "Job Info", icon = "fas fa-info-circle", txt = "Grade: " .. jobRep.grade .. " | Progress: " .. jobRep.progress .. "%", isMenuHeader = true },
-        { header = "Stored Earnings: $" .. jobRep.payment, icon = "fas fas fa-wallet", isMenuHeader = true },
-    }
+    if Config.menu == "qb" then
+        local jobMenu = {
+            { header = "Job Menu", icon = "fas fa-briefcase", isMenuHeader = true },
+            { header = "Job Info", icon = "fas fa-info-circle", txt = "Grade: " .. jobRep.grade .. " | Progress: " .. jobRep.progress .. "%", isMenuHeader = true },
+            { header = "Stored Earnings: $" .. jobRep.payment, icon = "fas fa-wallet", isMenuHeader = true },
+        }
 
-    if jobRep.payment > 0 then
-        table.insert(jobMenu, { header = "Collect Earnings", icon = "fas fa-money-bill", txt = "Withdraw your stored money", params = { event = "qb-electrac:client:collectEarnings" } })
+        if jobRep.payment > 0 then
+            table.insert(jobMenu, { header = "Collect Earnings", icon = "fas fa-money-bill", txt = "Withdraw your stored money", params = { event = "qb-electrac:client:collectEarnings" } })
+        end
+
+        if not isOnMission then
+            table.insert(jobMenu, { header = "Start Work", icon = "fas fa-play", txt = "Begin fixing electricity issues", params = { event = "qb-electrac:client:startjob" } })
+        elseif not hasCompletedMission then
+            table.insert(jobMenu, { header = "Cancel Job", icon = "fas fa-times", txt = "Cancel current job", params = { event = "qb-electrac:client:cancelJob" } })
+        end
+
+        if hasCompletedMission then
+            table.insert(jobMenu, { header = "End Job", icon = "fas fa-check", txt = "Complete the job and receive your earnings", params = { event = "qb-electrac:client:endJob" } })
+        end
+
+        table.insert(jobMenu, { header = "Close", icon = "fas fa-times-circle", params = { event = "qb-menu:closeMenu" } })
+
+        exports["qb-menu"]:openMenu(jobMenu)
+
+    elseif Config.menu == "ox" then
+        local jobMenu = {
+            id = "qb_electrac_menu",
+            title = "Electrician Job Menu",
+            options = {
+                { title = "Job Info", description = "Grade: " .. jobRep.grade .. " | Progress: " .. jobRep.progress .. "%", icon = "fas fa-info-circle" },
+                { title = "Stored Earnings: $" .. jobRep.payment, icon = "fas fa-wallet" },
+            }
+        }
+
+        if jobRep.payment > 0 then
+            table.insert(jobMenu.options, { title = "Collect Earnings", description = "Withdraw your stored money", icon = "fas fa-money-bill", event = "qb-electrac:client:collectEarnings" })
+        end
+
+        if not isOnMission then
+            table.insert(jobMenu.options, { title = "Start Work", description = "Begin fixing electricity issues", icon = "fas fa-play", event = "qb-electrac:client:startjob" })
+        elseif not hasCompletedMission then
+            table.insert(jobMenu.options, { title = "Cancel Job", description = "Cancel current job", icon = "fas fa-times", event = "qb-electrac:client:cancelJob" })
+        end
+
+        if hasCompletedMission then
+            table.insert(jobMenu.options, { title = "End Job", description = "Complete the job and receive your earnings", icon = "fas fa-check", event = "qb-electrac:client:endJob" })
+        end
+
+        table.insert(jobMenu.options, { title = "Close", icon = "fas fa-times-circle" })
+
+        lib.registerContext(jobMenu)
+        lib.showContext("qb_electrac_menu")
     end
-
-    if not isOnMission then
-        table.insert(jobMenu, { header = "Start Work", icon = "fas fa-money-bill", txt = "Begin fixing electricity issues", params = { event = "qb-electrac:client:startjob" } })
-    elseif not hasCompletedMission then
-        table.insert(jobMenu, { header = "Cancel Job", icon = "fas fas fa-times", txt = "Cancel current job", params = { event = "qb-electrac:client:cancelJob" } })
-    end
-
-    if hasCompletedMission then
-        table.insert(jobMenu, { header = "End Job", icon = "fas fa-check", txt = "Complete the job and receive your earnings", params = { event = "qb-electrac:client:endJob" } })
-    end
-
-    table.insert(jobMenu, { header = "Close", icon = "fas fa-times-circle", params = { event = "qb-menu:closeMenu" } })
-
-    exports["qb-menu"]:openMenu(jobMenu)
 end)
 
 
