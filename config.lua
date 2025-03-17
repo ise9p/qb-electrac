@@ -32,9 +32,21 @@ Config.menu = "qb" -- You can change the menu between "ox" and "qb" depending on
 -- 💰 Payment method: "cash" or "bank"
 Config.paymentMethod = "cash" -- Payment type
 
--- 💲 Minimum and maximum reward amount
-Config.minReward = 150 -- Minimum reward
-Config.maxReward = 300 -- Maximum reward
+Config.gradeRewards = { -- Rewards for each grade
+    [1] = { min = 150, max = 300 },
+    [2] = { min = 200, max = 350 },
+    [3] = { min = 250, max = 400 },
+    [4] = { min = 300, max = 450 },
+    [5] = { min = 350, max = 500 },
+    [6] = { min = 400, max = 550 },
+    [7] = { min = 450, max = 600 },
+    [8] = { min = 500, max = 650 },
+    [9] = { min = 550, max = 700 },
+    [10] = { min = 600, max = 750 }
+}
+
+Config.extraBonusPerGrade = 5 -- Additional bonus per level after level 5
+Config.baseExtraBonus = 50 -- Base extra bonus for higher levels
 
 -- 🎁 Bonus item when completing the mission
 Config.giveBonusItem = false  -- Do you want to give an extra item?
