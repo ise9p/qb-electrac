@@ -7,9 +7,13 @@ Config.PedModel = `a_m_m_business_01` -- Ped model
 Config.PedCoords = vector4(287.98, -23.37, 74.47, 257.37) -- Ped location
 
 Config.WebHook = "" -- Add your webhook URL here
--- Vehicle Model
+
 Config.VehicleModel = `utillitruck3` -- Vehicle model
-Config.spawncar = vector4(274.2, 1.38, 78.81, 249.89) -- Vehicle spawn location
+Config.spawncar = { -- Vehicle spawn location
+    vector4(274.04, 6.06, 78.87, 247.49),
+    vector4(273.41, 1.66, 78.84, 248.91),
+    vector4(276.41, 9.87, 78.9, 246.0)
+} 
 
 Config.MissionLocations = {
     vector4(282.55, -32.66, 72.8, 138.69), -- Mission 1
