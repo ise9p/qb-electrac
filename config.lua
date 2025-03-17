@@ -27,6 +27,7 @@ Config.maxMissions = 4
 
 -- 📜 Job Information
 Config.notify = "ox" -- You can change the notify between "ox" and "qb" depending on the framework you're using
+Config.menu = "qb" -- You can change the menu between "ox" and "qb" depending on the framework you're using
 
 -- 💰 Payment method: "cash" or "bank"
 Config.paymentMethod = "cash" -- Payment type
