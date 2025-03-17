@@ -109,26 +109,19 @@ RegisterNetEvent("qb-electrac:client:startjob", function()
         return
     end
 
-
     if #activeMissions >= Config.maxMissions then
         sendNotification("You can't take more than " .. Config.maxMissions .. " missions at the same time!", "error")
         return
     end
 
-    local missionLocation = Config.MissionLocations[math.random(1, #Config.MissionLocations)] 
-    print("Mission location chosen: " .. tostring(missionLocation))  
+    local missionLocation = Config.MissionLocations[math.random(1, #Config.MissionLocations)]
+    print("Mission location chosen: " .. tostring(missionLocation))
 
     table.insert(activeMissions, missionLocation)
 
-
-    if currentVehicle then
-        DeleteEntity(currentVehicle)
-        currentVehicle = nil
-    end
-
+    local spawnCoords = Config.spawncar[math.random(1, #Config.spawncar)]
+    
     local playerPed = PlayerPedId()
-    local spawnCoords = Config.spawncar
-
     local nearbyVehicle = GetClosestVehicle(spawnCoords.x, spawnCoords.y, spawnCoords.z, 3.0, 0, 71)
     if DoesEntityExist(nearbyVehicle) then
         sendNotification("The spawn area is blocked! Move the vehicle first.", "error")
@@ -175,6 +168,7 @@ RegisterNetEvent("qb-electrac:client:startjob", function()
     sendNotification("Drive to the marked location and fix the electricity issue.", "primary")
     isOnMission = true
 end)
+
 
 RegisterNetEvent("qb-electrac:client:repairElectricity", function()
     if not isOnMission then
