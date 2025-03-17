@@ -10,16 +10,24 @@ RegisterNetEvent("qb-electrac:server:payReward", function()
         return
     end
 
-    local paymentMethod = Config.paymentMethod or "cash" 
-    local minReward = Config.minReward or 150
-    local maxReward = Config.maxReward or 300
-    local rewardAmount = math.random(minReward, maxReward)
-
     local metadata = Player.PlayerData.metadata or {}
     metadata["jobrep"] = metadata["jobrep"] or {}
     metadata["jobrep"]["electrac"] = metadata["jobrep"]["electrac"] or { grade = 1, progress = 0, payment = 0 }
 
-    metadata["jobrep"]["electrac"].payment = (metadata["jobrep"]["electrac"].payment or 0) + rewardAmount
+    local jobRep = metadata["jobrep"]["electrac"]
+    local grade = jobRep.grade or 1
+
+    local gradeReward = Config.gradeRewards[grade] or { min = 150, max = 300 }
+    local rewardAmount = math.random(gradeReward.min, gradeReward.max)
+
+    jobRep.payment = (jobRep.payment or 0) + rewardAmount
+
+    local extraBonus = 0
+    if grade >= 5 then
+        extraBonus = Config.baseExtraBonus + (grade * Config.extraBonusPerGrade)
+        jobRep.payment = jobRep.payment + extraBonus
+        TriggerClientEvent("QBCore:Notify", src, "Bonus $" .. extraBonus .. " stored for your high rank!", "success")
+    end
 
     local bonusItem, bonusAmount = nil, 0
     if Config.giveBonusItem and Config.bonusItem then
@@ -31,14 +39,6 @@ RegisterNetEvent("qb-electrac:server:payReward", function()
         else
             print("[qb-electrac] Warning: Failed to give bonus item (" .. bonusItem .. ") to player " .. src)
         end
-    end
-
-    local extraBonus = 0
-    local jobRep = metadata["jobrep"]["electrac"]
-    if jobRep and jobRep.grade and jobRep.grade >= 5 then
-        extraBonus = Config.extraBonus or 50
-        metadata["jobrep"]["electrac"].payment = metadata["jobrep"]["electrac"].payment + extraBonus
-        TriggerClientEvent("QBCore:Notify", src, "Bonus $" .. extraBonus .. " stored for your high rank!", "success")
     end
 
     Player.Functions.SetMetaData("jobrep", metadata["jobrep"])
