@@ -6,7 +6,8 @@ local spawnedPed = nil
 local currentVehicle = nil
 local missionBlip = nil
 local repairZone = nil
-
+local completedLocations = {}
+local currentMissionIndex = nil
 
 local function sendNotification(title, type)
     if Config.notify == "qb" then
@@ -140,12 +141,29 @@ RegisterNetEvent("qb-electrac:client:startjob", function()
         return
     end
 
-    if #activeMissions >= Config.maxMissions then
-        sendNotification("You can't take more than " .. Config.maxMissions .. " missions at the same time!", "error")
+    -- Reset completed locations if all missions are done
+    if #completedLocations >= #Config.MissionLocations then
+        completedLocations = {}
+    end
+
+    -- Find an unvisited location
+    local availableLocations = {}
+    for i, location in ipairs(Config.MissionLocations) do
+        if not completedLocations[i] then
+            table.insert(availableLocations, {index = i, location = location})
+        end
+    end
+
+    if #availableLocations == 0 then
+        sendNotification("No more missions available!", "error")
         return
     end
 
-    local missionLocation = Config.MissionLocations[math.random(1, #Config.MissionLocations)]
+    -- Select random location from available ones
+    local selected = availableLocations[math.random(1, #availableLocations)]
+    currentMissionIndex = selected.index
+    local missionLocation = selected.location
+
     print("Mission location chosen: " .. tostring(missionLocation))
 
     table.insert(activeMissions, missionLocation)
@@ -214,45 +232,72 @@ RegisterNetEvent("qb-electrac:client:repairElectricity", function()
 
     local playerPed = PlayerPedId()
     TaskStartScenarioInPlace(playerPed, "WORLD_HUMAN_WELDING", 0, true)
-    QBCore.Functions.Progressbar("repair_electricity", "Repairing Electricity...", 5000, false, true, {
-        disableMovement = true,
-        disableCarMovement = true,
-        disableMouse = false,
-        disableCombat = true,
-    }, {}, {}, {}, function()
-        ClearPedTasks(playerPed)
-        hasCompletedMission = true
-        sendNotification("Electricity issue fixed! Return to the manager.", "success")
-
-        if repairZone then
-            exports['qb-target']:RemoveZone(repairZone)
-            repairZone = nil
+    
+    if Config.Progressbar == "qb" then
+        QBCore.Functions.Progressbar("repair_electricity", "Repairing Electricity...", 5000, false, true, {
+            disableMovement = true,
+            disableCarMovement = true,
+            disableMouse = false,
+            disableCombat = true,
+        }, {}, {}, {}, function()
+            ClearPedTasks(playerPed)
+            CompleteRepair()
+        end, function()
+            ClearPedTasks(playerPed)
+            sendNotification("Repair failed!", "error")
+        end)
+    elseif Config.Progressbar == "ox" then
+        if lib.progressBar({
+            duration = 5000,
+            label = 'Repairing Electricity...',
+            useWhileDead = false,
+            canCancel = true,
+            disable = {
+                car = true,
+                move = true,
+                combat = true,
+            },
+        }) then
+            ClearPedTasks(playerPed)
+            CompleteRepair()
+        else
+            ClearPedTasks(playerPed)
+            sendNotification("Repair failed!", "error")
         end
-
-        if missionBlip then
-            RemoveBlip(missionBlip)
-            missionBlip = nil
-        end
-
-        local PlayerData = QBCore.Functions.GetPlayerData()
-        local jobRep = PlayerData.metadata["jobrep"] and PlayerData.metadata["jobrep"]["electrac"] or { grade = 1, progress = 0 }
-
-        jobRep.progress = jobRep.progress + Config.ProgressPerRepair 
-
-        if jobRep.progress >= 100 then
-            jobRep.grade = jobRep.grade + 1
-            jobRep.progress = 0 
-            sendNotification("Congratulations! You have been promoted to Grade " .. jobRep.grade .. "!", "success")
-        end
-
-        TriggerServerEvent("qb-electrac:server:updateJobRep", jobRep)
-
-    end, function()
-        ClearPedTasks(playerPed)
-        sendNotification("Repair failed!", "error")
-    end)
+    end
 end)
 
+function CompleteRepair()
+    hasCompletedMission = true
+    -- Mark current location as completed
+    if currentMissionIndex then
+        completedLocations[currentMissionIndex] = true
+    end
+    sendNotification("Electricity issue fixed! Return to the manager.", "success")
+
+    if repairZone then
+        exports['qb-target']:RemoveZone(repairZone)
+        repairZone = nil
+    end
+
+    if missionBlip then
+        RemoveBlip(missionBlip)
+        missionBlip = nil
+    end
+
+    local PlayerData = QBCore.Functions.GetPlayerData()
+    local jobRep = PlayerData.metadata["jobrep"] and PlayerData.metadata["jobrep"]["electrac"] or { grade = 1, progress = 0 }
+
+    jobRep.progress = jobRep.progress + Config.ProgressPerRepair 
+
+    if jobRep.progress >= 100 then
+        jobRep.grade = jobRep.grade + 1
+        jobRep.progress = 0 
+        sendNotification("Congratulations! You have been promoted to Grade " .. jobRep.grade .. "!", "success")
+    end
+
+    TriggerServerEvent("qb-electrac:server:updateJobRep", jobRep)
+end
 
 
 RegisterNetEvent("qb-electrac:client:endJob", function()
@@ -264,6 +309,7 @@ RegisterNetEvent("qb-electrac:client:endJob", function()
     if hasCompletedMission then
         sendNotification("Job completed! Your earnings have been stored.", "success")
         TriggerServerEvent("qb-electrac:server:payReward")
+        currentMissionIndex = nil -- Reset current mission index
     else
         sendNotification("You haven't completed any repairs yet!", "error")
         return
@@ -301,5 +347,6 @@ RegisterNetEvent("qb-electrac:client:cancelJob", function()
         sendNotification("Job cancelled. You can start a new job anytime.", "error")
         isOnMission = false
         hasCompletedMission = false
+        currentMissionIndex = nil -- Reset current mission index
     end
 end)
