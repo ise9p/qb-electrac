@@ -1,5 +1,5 @@
 local SCRIPT_VERSION = "1.0.1"
-local GITHUB_REPO = "https://github.com/ise9p/qb-gym"
+local GITHUB_REPO = "https://github.com/ise9p/qb-electrac"
 local UPDATE_URL = GITHUB_REPO .. "/raw/main/version.txt"
 local CHANGELOG_URL = GITHUB_REPO .. "/raw/main/changelog.txt"
 
