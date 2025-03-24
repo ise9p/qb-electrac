@@ -7,7 +7,7 @@ local CHANGELOG_URL = GITHUB_REPO .. "/raw/main/changelog.txt"
 CreateThread(function()
     Wait(1000) 
     print("^3============================================^0")
-    print("^5 qb-gym Script Information ^0")
+    print("^5 qb-electrac Script Information ^0")
     print("^3 Version:^0 " .. SCRIPT_VERSION)
     print("^3 GitHub Repository:^0 " .. GITHUB_REPO)
     print("^3============================================^0")
